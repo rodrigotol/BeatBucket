@@ -1,0 +1,131 @@
+<div class="parent-container" ng-class="vm.currentTheme">
+    <div class="player-container context-container" layout="column" suppress-key="[122]" arrow-action="!vm.newPlaylist" arrow-left="vm.seekArrowLeft" arrow-right="vm.seekArrowRight">
+        <div class="navbar" layout="row" layout-align="start center" drag-window="">
+            <div layout="row" layout-align="start center" flex="30">
+                <div>
+                    <md-icon class="default-svg svg-button navbar-svg" md-svg-src="./assets/img/icons/playlist_add.svg" aria-label="Add to playlist" ng-click="vm.openDialog()">
+                        <md-tooltip md-direction="bottom" md-delay="200">Add songs to playlist</md-tooltip>
+                    </md-icon>                
+                    <md-icon ng-class="{'default-svg': !vm.shuffleMode, 'active-svg': vm.shuffleMode}" 
+                            class="svg-button navbar-svg" 
+                            md-svg-src="./assets/img/icons/shuffle.svg" 
+                            aria-label="Shuffle" 
+                            ng-click="vm.toggleShuffle()">
+                        <md-tooltip md-direction="bottom" md-delay="200">Shuffle</md-tooltip>
+                    </md-icon>
+                    <md-icon class="default-svg small-svg svg-button navbar-svg" 
+                            md-svg-src="./assets/img/icons/palette.svg" 
+                            aria-label="Theme" 
+                            ng-click="vm.toggleTheme()">
+                        <md-tooltip md-direction="bottom" md-delay="200">Theme</md-tooltip>
+                    </md-icon>
+                </div>            
+            </div> 
+            <div  layout="row" layout-align="end center" flex="20" flex-offset="50">
+                <div>                    
+                    <md-icon class="default-svg svg-button navbar-svg" 
+                            md-svg-src="./assets/img/icons/minimize.svg" 
+                            aria-label="Minimize" 
+                            ng-click="vm.minimizeApp()">
+                        <md-tooltip md-direction="bottom" md-delay="200">Minimize</md-tooltip>
+                    </md-icon>
+                    <md-icon class="default-svg svg-button navbar-svg" 
+                            md-svg-src="./assets/img/icons/close.svg" 
+                            aria-label="Close" 
+                            ng-click="vm.closeApp()">
+                        <md-tooltip md-direction="bottom" md-delay="200">Close</md-tooltip>
+                    </md-icon>
+                </div>            
+            </div>        
+        </div>
+        <div class="list-container" layout="row" layout-align="left start">
+            <div class="playlists" 
+                flex="25"
+                context-menu="playlistsContext">
+                <div class="playlist" 
+                    ng-repeat="name in vm.playlistService.getPlaylistNames()" 
+                    ng-click="vm.setViewPlaylist(name)" 
+                    ng-dblclick="vm.setCurrentPlaylist(name)" 
+                    ng-class="{'viewPlaylist':vm.viewPlaylistName == name , 'currentPlaylist': vm.currentPlaylistName == name}"
+                    layout="row" 
+                    layout-align="start center" 
+                    context-menu="playlistContext"
+                    context-menu-bind="vm.contextMenuTarget"
+                    context-menu-target="name">
+                    <md-icon ng-if="vm.currentPlaylistName != name || vm.showPlayButton" class="default-svg svg-button" md-svg-src="./assets/img/icons/playlist.svg" aria-label="{{name}}"></md-icon>
+                    <md-icon ng-if="vm.currentPlaylistName == name && !vm.showPlayButton" class="default-svg svg-button small-svg" md-svg-src="./assets/img/icons/play.svg" aria-label="{{name}}"></md-icon>                 
+                    {{name}}
+                </div>
+                <div ng-if="vm.newPlaylist">
+                    <custom-input class="newPlaylist"
+                                placeholder="Playlist name"                              
+                                on-esc="vm.hideNewPlaylist"
+                                on-enter="vm.createNewPlaylist"></custom-input>
+                </div>
+            </div>
+            <div class="songlist-container" flex="75">
+                <div class="songPlaylist" layout="column" layout-align="center start" >
+                    {{vm.viewPlaylistName}}
+                </div>
+                <div id="songlist" class="songlist" flex="100">
+                    <div class="song" 
+                        ng-repeat="song in vm.viewPlaylistSongs" 
+                        ng-click="vm.skip($index)" 
+                        layout="column" 
+                        layout-align="center start" 
+                        context-menu="songContext"
+                        context-menu-bind="vm.contextMenuTarget"
+                        context-menu-target="$index"
+                        ng-class="{'currentSong': vm.currentSong.id == song.id}">
+                        {{song.title}}
+                </div>  
+                </div>                      
+            </div>        
+        </div>
+        <div class="progress-container" layout="row" ng-click="vm.seek($event)">
+            <div class="progressBar" ng-style="{width: vm.progressBar}"></div>
+        </div>
+        <div class="control-container" layout="row" layout-align="start start">
+            <div class="label-container" layout="column" layout-align="start start" flex="20">
+                <div class="songLabel" layout="column" ng-if="vm.currentSong">
+                    <div>{{vm.currentSong.title}}</div>                
+                </div>
+            </div>
+            <div class="controls" layout="row" layout-align="center center" flex="40" flex-offset="10">
+                <md-icon class="default-svg svg-button" md-svg-src="./assets/img/icons/skip_previous.svg" aria-label="Previous" ng-click="vm.skip(null, 'prev')">
+                    <md-tooltip md-direction="top" md-delay="200">Previous</md-tooltip>
+                </md-icon>
+                <md-icon ng-if="vm.showPlayButton" class="default-svg svg-button big-svg" md-svg-src="./assets/img/icons/play.svg" aria-label="Play" ng-click="vm.play_pause()">
+                    <md-tooltip md-direction="top" md-delay="200">Play</md-tooltip>
+                </md-icon>        
+                <md-icon ng-if="!vm.showPlayButton" class="default-svg svg-button big-svg" md-svg-src="./assets/img/icons/pause.svg" aria-label="Pause" ng-click="vm.play_pause()">
+                    <md-tooltip md-direction="top" md-delay="200">Pause</md-tooltip>
+                </md-icon>
+                <md-icon class="default-svg svg-button" md-svg-src="./assets/img/icons/skip_next.svg" aria-label="Next" ng-click="vm.skip(null)">
+                    <md-tooltip md-direction="top" md-delay="200">Next</md-tooltip>
+                </md-icon>
+            </div>
+            <div class="label-container" layout="row" layout-align="end start" flex="15" flex-offset="15">
+                <div layout="row">                                
+                    <div>{{vm.songPosition}}&nbsp;/&nbsp;{{vm.songDuration}}</div>
+                </div>            
+            </div>        
+        </div>        
+    </div>
+    <div class="menu" id="songContext">
+        <ul class="menu-options">
+            <li class="menu-option" ng-click="vm.removeSong()">Remove</li>
+        </ul>
+    </div>
+    <div class="menu" id="playlistContext">
+        <ul class="menu-options">
+            <li class="menu-option" ng-click="vm.showNewPlaylist()">New playlist</li>
+            <li class="menu-option" ng-click="vm.removePlaylist()">Delete playlist</li>        
+        </ul>
+    </div>
+    <div class="menu" id="playlistsContext">
+        <ul class="menu-options">
+            <li class="menu-option" ng-click="vm.showNewPlaylist()">New playlist</li>
+        </ul>
+    </div>
+</div>    

@@ -1,0 +1,33 @@
+@include themify($themes) {
+    .svg-button {
+        cursor: pointer;
+        outline : none;
+    }
+
+    .default-svg svg {
+        transform: scale(1.0);
+        fill: themed('color-default-svg');
+    }
+
+    .active-svg svg {
+        transform: scale(1.0);
+        fill: themed('color-active-svg');
+    }
+
+    .big-svg svg {
+        transform: scale(1.5) !important;
+    }
+
+    .small-svg svg {
+        transform: scale(0.8) !important;
+    }
+
+    .navbar-svg {
+        -webkit-app-region: no-drag;
+        margin-left: 5px;
+    }
+
+    .navbar-svg svg{
+        transform: scale(0.75) !important;
+    }
+}

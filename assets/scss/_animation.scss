@@ -1,0 +1,25 @@
+/* ngRepeat animation*/
+.song.ng-enter {
+    -webkit-transition: opacity ease-in-out 0.015s;
+    transition: opacity ease-in-out 0.015s;
+}
+
+    .song.ng-enter,
+    .song.ng-leave.ng-leave-active {
+        opacity: 0;
+    }
+
+        .song.ng-leave,
+        .song.ng-enter.ng-enter-active {
+            opacity: 1;
+        }
+
+
+.song.ng-enter-stagger {
+    /* This is the delay between each animation of the staggered animation sequence */
+    -webkit-transition-delay: 0.015s;    
+    transition-delay: 0.015;
+    /* This should be set to 0s to avoid problems, this element could inherit the value from the repeatItemTransition element */
+    -webkit-transition-duration: 0s;
+    transition-duration: 0s;
+}

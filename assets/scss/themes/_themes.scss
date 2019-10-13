@@ -1,0 +1,115 @@
+$themes: (
+    dark: (        
+        color-window-background: rgba(0,0,0,0),
+        color-player-background: rgb(51, 51, 51),
+        color-player-font: rgb(127, 127, 127),
+        color-border: rgb(195, 195, 195),
+        color-playlist-background: rgb(51, 51, 51),
+        color-playlist-font: rgb(195, 195, 195),
+        color-focused-playlist-background: rgba(240, 127, 39, 0.8),
+        color-focused-playlist-font: rgb(255, 255, 255),
+        color-new-playlist-font: rgb(220, 220, 220),
+        color-new-playlist-border: rgb(255, 127, 39),
+        color-new-playlist-placeholder: rgb(110, 110, 110),
+        color-songlist-background: rgb(40, 40, 40),
+        color-songlist-font: rgb(150, 150, 150),
+        color-song-background: rgb(65, 65, 65),
+        color-song-border: rgb(51, 51, 51),
+        color-currentsong-background: rgb(65, 65, 65),
+        color-currentsong-font: rgb(195, 195, 195),
+        color-song-playlist-font: rgb(255, 255, 255),
+        color-song-playlist-background: rgba(240, 127, 39, 0.8),
+        color-progress-background: rgb(97, 97, 97),
+        color-progressbar-background: rgb(255, 127, 39),
+        color-scrollbar-background: rgb(51, 51, 51),
+        color-scrollbar-thumb-background: rgb(255, 127, 39),
+        color-label-font: rgb(170, 170, 170),
+        color-contextmenu-background: rgb(68, 68, 68),
+        color-contextmenu-font: rgb(221, 221, 221),
+        color-contextmenu-border: rgb(119, 119, 119),
+        color-default-svg: rgb(221, 221, 221),
+        color-active-svg: rgb(255, 127, 39),
+
+        color-contextmenu-background-hover: rgba(0, 0, 0, 0.2),
+        color-song-background-hover: rgb(92, 92, 92),
+        color-song-font-hover: rgb(250, 168, 113),
+        color-playlist-background-hover: rgb(92, 92, 92),
+        color-song-playlist-background-hover: rgb(253, 136, 57),
+        color-focused-playlist-background-hover: rgb(253, 136, 57),
+        color-default-svg-hover: rgb(250, 168, 113),
+        color-default-svg-active-hover: rgb(255, 127, 39),
+        color-active-svg-hover: rgb(250, 168, 113),
+        color-active-svg-active-hover: rgb(255, 127, 39),
+        color-progress-background-hover: rgb(115, 115, 115),
+        color-progress-border-hover: rgb(195, 195, 195),
+        color-progressbar-background-hover: rgb(255, 141, 65),
+        color-label-hover: rgb(250, 168, 113)
+    ),
+    light: (        
+        color-window-background: rgba(0,0,0,0),
+        color-player-background: rgb(160, 160, 160),
+        color-player-font: rgb(31, 31, 31),
+        color-border: rgb(31, 31, 31),
+        color-playlist-background: rgb(160, 160, 160),
+        color-playlist-font: rgb(31, 31, 31),
+        color-focused-playlist-background: rgba(240, 127, 39, 0.8),
+        color-focused-playlist-font: rgb(255, 255, 255),
+        color-new-playlist-font: rgb(31, 31, 31),
+        color-new-playlist-border: rgb(255, 127, 39),
+        color-new-playlist-placeholder: rgb(110, 110, 110),
+        color-songlist-background: rgb(73, 73, 73),
+        color-songlist-font: rgb(180, 180, 180),
+        color-song-background: rgb(65, 65, 65),
+        color-song-border: rgb(73, 73, 73),
+        color-currentsong-background: rgb(65, 65, 65),
+        color-currentsong-font: rgb(220, 220, 220),
+        color-song-playlist-font: rgb(255, 255, 255),
+        color-song-playlist-background: rgba(240, 127, 39, 0.8),
+        color-progress-background: rgb(97, 97, 97),
+        color-progressbar-background: rgb(255, 127, 39),
+        color-scrollbar-background: rgb(160, 160, 160),
+        color-scrollbar-thumb-background: rgb(255, 127, 39),
+        color-label-font: rgb(31, 31, 31),
+        color-contextmenu-background: rgb(68, 68, 68),
+        color-contextmenu-font: rgb(221, 221, 221),
+        color-contextmenu-border: rgb(119, 119, 119),
+        color-default-svg: rgb(51, 51, 51),
+        color-active-svg: rgb(255, 255, 255),
+
+        color-contextmenu-background-hover: rgba(0, 0, 0, 0.2),
+        color-song-background-hover: rgb(92, 92, 92),
+        color-song-font-hover: rgb(250, 168, 113),
+        color-playlist-background-hover: rgb(136, 136, 136),
+        color-song-playlist-background-hover: rgb(253, 136, 57),
+        color-focused-playlist-background-hover: rgb(253, 136, 57),
+        color-default-svg-hover: rgb(240, 240, 240),
+        color-default-svg-active-hover: rgb(255, 255, 255),
+        color-active-svg-hover: rgb(240, 240, 240),
+        color-active-svg-active-hover: rgb(240, 240, 240),
+        color-progress-background-hover: rgb(115, 115, 115),
+        color-progress-border-hover: rgb(30, 30, 30),
+        color-progressbar-background-hover: rgb(255, 141, 65),
+        color-label-hover: rgb(240, 240, 240)
+    )
+);
+
+/*
+ * Pretty much a copy from https://gist.github.com/bafxyz/503fdd9dd3b6a2cdd6808b59ae15109f
+ */
+ @mixin themify($themes) {
+    @each $theme, $map in $themes {
+      .theme-#{$theme} {
+        $theme-map: () !global;
+        @each $key, $submap in $map {
+          $value: map-get(map-get($themes, $theme), '#{$key}');
+          $theme-map: map-merge($theme-map, ($key: $value)) !global;
+        }
+        @content;
+        $theme-map: null !global;
+      }
+    }
+  }
+  
+  @function themed($key) {
+    @return map-get($theme-map, $key);
+  }

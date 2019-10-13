@@ -1,0 +1,37 @@
+{
+  "name": "beatbucket",
+  "version": "1.0.0",
+  "description": "Beat Bucket",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "package-linux": "electron-packager . BeatBucket --overwrite --platform=linux --arch=x64 --icon=assets/img/beatbucket.png --prune=true --out=release-builds",
+    "package-windows": "electron-packager . BeatBucket --overwrite --platform=win32 --arch=x64 --icon=assets/img/beatbucket.png --prune=true --out=release-builds"
+  },
+  "author": "Rodrigo Silva",
+  "license": "MIT",
+  "devDependencies": {
+    "angular": "^1.7.8",
+    "angular-animate": "^1.7.8",
+    "angular-aria": "^1.7.8",
+    "angular-material": "^1.1.19",
+    "angular-messages": "^1.7.8",
+    "angular-route": "^1.7.8",
+    "angular-uuid": "0.0.4",
+    "electron": "^5.0.6",
+    "electron-is-dev": "^1.1.0",
+    "howler": "^2.1.2",
+    "sass": "^1.22.7"
+  },
+  "dependencies": {
+    "angular": "^1.7.8",
+    "angular-animate": "^1.7.8",
+    "angular-aria": "^1.7.8",
+    "angular-material": "^1.1.19",
+    "angular-messages": "^1.7.8",
+    "angular-route": "^1.7.8",
+    "angular-uuid": "0.0.4",
+    "electron-is-dev": "^1.1.0",
+    "howler": "^2.1.2"
+  }
+}

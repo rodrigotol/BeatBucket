@@ -1,0 +1,52 @@
+@include themify($themes) {
+    .menu .menu-options .menu-option:hover {
+        background: themed('color-contextmenu-background-hover');
+    }
+    
+    .song:hover {    
+        background-color: themed('color-song-background-hover');
+        color: themed('color-song-font-hover');
+    }
+    
+    .playlist:hover {    
+        background-color: themed('color-playlist-background-hover');    
+    }
+    
+    .songPlaylist:hover {
+        background-color: themed('color-song-playlist-background-hover');    
+    }
+    
+    .viewPlaylist:hover {
+        background-color: themed('color-focused-playlist-background-hover');    
+    }
+    
+    .default-svg:hover svg{    
+        transform: scale(1.0);
+        fill: themed('color-default-svg-hover');
+    }
+    .default-svg:active:hover svg{        
+        fill: themed('color-default-svg-active-hover');
+    }
+    
+    .active-svg:hover svg {    
+        fill: themed('color-active-svg-hover');
+    }
+    
+    .active-svg:active:hover svg {    
+        fill: themed('color-active-svg-active-hover');
+    }
+    
+    .progress-container:hover {
+        background-color: themed('color-progress-background-hover');
+        border-top: 1px solid themed('color-progress-border-hover');
+        height: 2%;
+    }
+    
+    .progress-container:hover .progressBar{
+        background-color: themed('color-progressbar-background-hover')  !important;
+    }
+    
+    .label-container div:hover {
+        color: themed('color-label-hover');
+    }
+}
