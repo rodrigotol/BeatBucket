@@ -33,6 +33,8 @@
         vm.shuffleMode = false;
         vm.contextMenuTarget = null;
         vm.newPlaylist = false;
+        vm.renamingPlaylistName = null;
+        vm.isRenamingPlaylist = false;
         vm.currentTheme = 'theme-dark';
 
         vm.openDialog = function() {
@@ -259,8 +261,51 @@
             vm.hideNewPlaylist();
         }
 
+        vm.showRenamePlaylist = function() {
+            if (vm.contextMenuTarget == null) return;
+
+            vm.renamingPlaylistName = vm.contextMenuTarget;
+            vm.isRenamingPlaylist = true;            
+        }
+
+        vm.hideRenamePlaylist = function() {
+            vm.isRenamingPlaylist = false;
+
+            if(!$scope.$$phase) {
+                $scope.$apply();
+            }
+        }
+
+        vm.renamePlaylist = function (playlist_name=null) {
+            if (playlist_name == null) return;
+            
+            var success = vm.playlistService.renamePlaylist(vm.renamingPlaylistName, playlist_name)
+
+            if (success) {
+                if (vm.currentPlaylistName == vm.renamingPlaylistName) {
+                    vm.currentPlaylistName = playlist_name;
+                }
+    
+                if (vm.viewPlaylistName == vm.renamingPlaylistName) {
+                    vm.viewPlaylistName = playlist_name;
+                }
+            }            
+
+            vm.hideRenamePlaylist();
+        }
+
         vm.removePlaylist = function() {
             if (vm.contextMenuTarget == null) return;
+
+            if (vm.viewPlaylistName == vm.contextMenuTarget) {
+                vm.viewPlaylistName = vm.playlistService.getDefaultPlaylistName();
+                vm.viewPlaylistSongs = vm.playlistService.getPlaylist(vm.currentPlaylistName);
+            }
+
+            if (vm.currentPlaylistName == vm.contextMenuTarget) {
+                vm.currentPlaylistName = vm.playlistService.getDefaultPlaylistName();
+                vm.currentPlaylist = vm.playlistService.getPlaylist(vm.currentPlaylistName);
+            }
 
             vm.playlistService.removePlaylist(vm.contextMenuTarget);
         }
@@ -433,9 +478,30 @@
             }
         }
 
+        function loadSongsFromArgs(args) {
+            var songs = [];
+
+            if (args.length >= 2) {                
+                for (var index = 1; index < args.length; index++) {
+                    if (args[index].endsWith('.mp3')){
+                        songs.push(args[index]);
+                    }                    
+                }
+                
+                if (songs.length > 0) {
+                    loadSongs(songs);
+                
+                    if(!vm.currentSong)
+                        play();
+                }                
+            }
+        }
+
         function init() {
             vm.playlistService.loadPlaylistNames();
-            loadPlaylist(vm.currentPlaylistName);
+            loadPlaylist(vm.currentPlaylistName);            
+
+            loadSongsFromArgs(electron.remote.process.argv);
 
             if(!$scope.$$phase) {
                 $scope.$apply();
@@ -457,6 +523,10 @@
                 $scope.$apply();
               }
         });
+
+        electron.remote.app.on('second-instance', (event, commandLine, workingDirectory) => {
+            loadSongsFromArgs(commandLine);
+        })     
 
         init();
     }

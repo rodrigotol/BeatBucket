@@ -9,13 +9,18 @@
             replace: true,
             scope: {                
                 onEsc: '=',
-                onEnter: '='
+                onEnter: '=',
+                defaultValue: '='
             },
             templateUrl: 'scripts/directives/templates/custom_input.html',
             link: function (scope, element, attrs) {
                 scope.placeholder = attrs.placeholder;
                 scope.setFocus = true;
                 scope.value = null;
+
+                if (scope.defaultValue != null) {
+                    scope.value = scope.defaultValue;
+                }                
 
                 element.bind('keydown keypress', function (event) {
                     if(event.which === 27) { // 27 = esc key

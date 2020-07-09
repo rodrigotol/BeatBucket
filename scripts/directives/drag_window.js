@@ -9,10 +9,14 @@
       restrict: 'A',
       scope: {},
       link: function (scope, element) {
+        var bounds = electron.remote.getCurrentWindow().getBounds();
+
         scope.windowInfo = {
           dragging: false,
-          x: 0,
-          y: 0
+          width: bounds.width,
+          height: bounds.height,
+          x: bounds.width,
+          y: bounds.height
         };
 
         element.on('mousedown', function (e) {
@@ -22,8 +26,13 @@
         });
 
         window.onmousemove = function (e) {
-          if (scope.windowInfo.dragging) {
-            electron.remote.getCurrentWindow().setPosition(e.screenX - scope.windowInfo.x, e.screenY - scope.windowInfo.y);
+          if (scope.windowInfo.dragging) {            
+            electron.remote.getCurrentWindow().setBounds({
+              x: e.screenX - scope.windowInfo.x,
+              y: e.screenY - scope.windowInfo.y,
+              width: scope.windowInfo.width,
+              height: scope.windowInfo.height              
+            });            
           }
         }
 

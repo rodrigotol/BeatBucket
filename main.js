@@ -10,7 +10,7 @@ if (isDev)
 
 var playerWindow;
 var app = electron.app;
-var iconPath = path.join(__dirname, 'assets', 'img', 'beatbucket.png')
+var iconPath = path.join(__dirname, 'assets', 'img', 'beat_bucket.png')
 var scssPath = path.join(__dirname, 'assets', 'scss', 'style.scss')
 var scssOutPath = path.join(__dirname, 'assets', 'css', 'style.css')
 
@@ -42,7 +42,7 @@ function createWindow() {
 
     playerWindow.on('close', () => {
         playerWindow = null
-    });
+    });    
 }
 
 function compile_scss() {
@@ -54,8 +54,14 @@ function compile_scss() {
 if (isDev)
     compile_scss();
 
+const gotTheLock = app.requestSingleInstanceLock()
+
+if (!gotTheLock) {
+    app.quit();
+}
+
 // startup application
-app.on('ready', createWindow)
+app.on('ready', createWindow);
 
 // quit when all windows are closed (except on mac)
 app.on('window-all-closed', () => {

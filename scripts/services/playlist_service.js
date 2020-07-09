@@ -17,10 +17,43 @@
             createNewPlaylist(playlist_name)
         }
 
+        this.renamePlaylist = function(old_playlist_name, new_playlist_name) {
+            if(!(old_playlist_name in playlists) || old_playlist_name == DEFAULT_PLAYLIST || old_playlist_name == new_playlist_name) return false;
+
+            if (new_playlist_name in playlists) {                
+                return false;
+            }
+
+            playlists[new_playlist_name] = playlists[old_playlist_name];
+            
+            var old_playlist_path = getPlaylistPath(old_playlist_name);
+            var new_playlist_path = getPlaylistPath(new_playlist_name);
+
+            try {
+                delete playlists[old_playlist_name];
+                fs.renameSync(old_playlist_path, new_playlist_path);                
+            }
+            catch(e) { 
+                alert('Failed to rename the file!'); 
+            }
+
+            return true;
+        }
+
         this.removePlaylist = function(playlist_name) {
             if(!(playlist_name in playlists) || playlist_name == DEFAULT_PLAYLIST) return false;
             
             delete playlists[playlist_name];
+            var file_path = getPlaylistPath(playlist_name);
+
+            if (fs.existsSync(file_path)) {
+                fs.unlink(file_path, (err) => {
+                    if (err) {
+                        alert("Could not remove playlist");
+                        console.log(err);                        
+                    }
+                });
+            }
 
             return true;
         }
@@ -57,8 +90,12 @@
             var names = [];
             
             angular.forEach(Object.keys(playlists), function(name){
-                names.push(name);
+                if (name !== DEFAULT_PLAYLIST) {
+                    names.push(name);
+                }
             });
+
+            names.sort().unshift(DEFAULT_PLAYLIST);
 
             return names;
         }
