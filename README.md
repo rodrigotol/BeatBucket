@@ -20,11 +20,11 @@ npm start
 ```
 
 ## Installer
-* Install electron-builder globally
+* Install electron-builder
 ```
-npm install electron-builder -g
+npm install electron-builder
 ```
 * Generate distribution
 ```
-npx electron-builder
+npm run dist-win
 ```
