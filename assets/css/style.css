@@ -327,7 +327,7 @@ html, body {
 .theme-dark .menu .menu-options .menu-separator {
   margin: 0 5px;
   background-color: transparent;
-  border-bottom: 1px solid;
+  border-bottom: 1px solid #5a5a5a;
 }
 .theme-dark .md-tooltip .md-content {
   height: auto !important;
@@ -498,7 +498,7 @@ html, body {
 .theme-light .menu .menu-options .menu-separator {
   margin: 0 5px;
   background-color: transparent;
-  border-bottom: 1px solid;
+  border-bottom: 1px solid #7777ff;
 }
 .theme-light .md-tooltip .md-content {
   height: auto !important;
@@ -576,13 +576,6 @@ html, body {
 .theme-dark .label-container {
   color: #aaaaaa;
 }
-.theme-dark .menu {
-  background-color: #444444;
-  color: #dddddd;
-}
-.theme-dark .menu .menu-options .menu-separator {
-  border-bottom: 1px solid;
-}
 
 .theme-light .player-container {
   background-color: #a0a0a0;
@@ -643,13 +636,6 @@ html, body {
 }
 .theme-light .label-container {
   color: #1f1f1f;
-}
-.theme-light .menu {
-  background-color: #444444;
-  color: #dddddd;
-}
-.theme-light .menu .menu-options .menu-separator {
-  border-bottom: 1px solid;
 }
 
 .navbar {
@@ -762,31 +748,6 @@ html, body {
 
 .timing {
   margin-right: 2px;
-}
-
-.menu {
-  position: absolute;
-  width: 120px;
-  box-shadow: 0 4px 5px 3px rgba(0, 0, 0, 0.2);
-  display: none;
-}
-
-.menu .menu-options {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.menu .menu-options .menu-option {
-  font-weight: 500;
-  font-size: 10pt;
-  padding: 5px 10px;
-  cursor: pointer;
-}
-
-.menu .menu-options .menu-separator {
-  margin: 0 5px;
-  background-color: transparent;
 }
 
 .md-tooltip .md-content {

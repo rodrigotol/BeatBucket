@@ -1,23 +1,27 @@
-(function (){
+(function() {
     'use strict';
     var app = angular.module('BeatBucket');
 
-    const electron = require('electron');
+    const { app:mainApp } = require('electron').remote;
     var fs = require('fs');
-    const path = require('path');    
-
-    app.service("playlistService", function() {        
+    const path = require('path');
+    
+    app.service("playlistService", ['uuid', function(uuid) {
         var playlists = {};
         const DEFAULT_PLAYLIST = 'Default playlist'
         var playlistFolder = '';
 
         playlists[DEFAULT_PLAYLIST] = [];
 
-        this.newPlaylist = function(playlist_name) {
-            createNewPlaylist(playlist_name)
+        function newPlaylist(playlist_name) {
+            if(playlist_name == null || playlist_name in playlists || playlist_name.trim() == '') return false;
+            
+            playlists[playlist_name] = [];            
+
+            return true;
         }
 
-        this.renamePlaylist = function(old_playlist_name, new_playlist_name) {
+        function renamePlaylist(old_playlist_name, new_playlist_name) {
             if(!(old_playlist_name in playlists) || old_playlist_name == DEFAULT_PLAYLIST || old_playlist_name == new_playlist_name) return false;
 
             if (new_playlist_name in playlists) {                
@@ -40,7 +44,7 @@
             return true;
         }
 
-        this.removePlaylist = function(playlist_name) {
+        function removePlaylist(playlist_name) {
             if(!(playlist_name in playlists) || playlist_name == DEFAULT_PLAYLIST) return false;
             
             delete playlists[playlist_name];
@@ -58,7 +62,7 @@
             return true;
         }
 
-        this.addSongToPlaylist = function(playlist_name, song) {
+        function addSongToPlaylist(playlist_name, song) {
             if(playlist_name in playlists) {
                 playlists[playlist_name].push(song);
 
@@ -68,7 +72,7 @@
             return false;
         }
 
-        this.removeSongFromPlaylist = function(playlist_name, song_index) {
+        function removeSongFromPlaylist(playlist_name, song_index) {
             if((playlist_name in playlists) && playlists[playlist_name].length > song_index) {
                 playlists[playlist_name].splice(song_index, 1);
 
@@ -78,7 +82,7 @@
             return false;
         }
 
-        this.getPlaylist = function(playlist_name) {
+        function getPlaylist(playlist_name) {
             if(playlist_name in playlists) {
                 return playlists[playlist_name];
             }
@@ -86,7 +90,7 @@
             return null;            
         }
 
-        this.getPlaylistNames = function() {
+        function getPlaylistNames() {
             var names = [];
             
             angular.forEach(Object.keys(playlists), function(name){
@@ -100,11 +104,11 @@
             return names;
         }
 
-        this.getDefaultPlaylistName = function() {
+        function getDefaultPlaylistName() {
             return DEFAULT_PLAYLIST;
         } 
 
-        this.savePlaylist = function(playlist_name) {            
+        function savePlaylist(playlist_name) {            
             if(!(playlist_name in playlists) || playlist_name == DEFAULT_PLAYLIST) return;
 
             var file_path = getPlaylistPath(playlist_name);
@@ -122,7 +126,7 @@
             }
         }
 
-        this.loadPlaylist = function(playlist_name) {
+        function loadPlaylist(playlist_name) {
             try { 
                 var file_path = getPlaylistPath(playlist_name);
 
@@ -135,40 +139,74 @@
             }
         }
 
-        this.loadPlaylistNames = function() {             
+        function unloadPlaylist(playlist_name) {
+            playlists[playlist_name] = [];
+        }
+
+        function loadPlaylistNames() {
             var list_names = [];
             var files = fs.readdirSync(playlistFolder);
 
             angular.forEach(files, function(file){
-                var current_file = file.split('.json');
+                var current_file = file.split('.config');
 
                 if (current_file.length > 1) {
-                    createNewPlaylist(current_file[0]);                        
+                    newPlaylist(current_file[0]);                        
                 }                        
             });
 
             return list_names;
         }
+
+        function copyPlaylist(sourcePlaylist, targetPlaylist) {
+            newPlaylist(targetPlaylist);
+
+            var existingPlaylist = [];
+
+            if (sourcePlaylist == DEFAULT_PLAYLIST) {
+                existingPlaylist = getPlaylist(sourcePlaylist);
+
+                angular.forEach(existingPlaylist, function(song) {
+                    addSongToPlaylist(targetPlaylist, song)
+                });
+            }else {
+                existingPlaylist = loadPlaylist(sourcePlaylist);
+
+                angular.forEach(existingPlaylist, function(song_path) {
+                    addSongToPlaylist(targetPlaylist, new Song(uuid.v4(), song_path))
+                });
+            }            
+            
+            savePlaylist(targetPlaylist);
+        }
         
         function createPlaylistFolder() {
-            playlistFolder = path.join(electron.remote.app.getPath('documents'), 'BeatBucket');
+            playlistFolder = path.join(mainApp.getPath('documents'), 'BeatBucket');
 
             if (!fs.existsSync(playlistFolder)) 
                 fs.mkdirSync(playlistFolder);
         }
 
         function getPlaylistPath(playlist_name) {
-            return path.join(playlistFolder, playlist_name + '.json');
-        }
-
-        function createNewPlaylist(playlist_name) {
-            if(playlist_name == null || playlist_name in playlists || playlist_name.trim() == '') return false;
-            
-            playlists[playlist_name] = [];            
-
-            return true;
+            return path.join(playlistFolder, playlist_name + '.config');
         }
 
         createPlaylistFolder();
-    });
+
+        return {
+            newPlaylist: newPlaylist,
+            renamePlaylist: renamePlaylist,
+            removePlaylist: removePlaylist,
+            addSongToPlaylist: addSongToPlaylist,
+            removeSongFromPlaylist: removeSongFromPlaylist,
+            getPlaylist: getPlaylist,
+            getPlaylistNames: getPlaylistNames,
+            getDefaultPlaylistName: getDefaultPlaylistName,
+            savePlaylist: savePlaylist,
+            loadPlaylist: loadPlaylist,
+            unloadPlaylist: unloadPlaylist,
+            loadPlaylistNames: loadPlaylistNames,
+            copyPlaylist: copyPlaylist            
+        }    
+    }]);
 })();

@@ -1,6 +1,7 @@
 (function(){
-    'use strict';
-    const electron = require('electron');    
+    'use strict';    
+    const { dialog, getCurrentWindow } = require('electron').remote;
+    const { ipcRenderer } = require('electron');
 
     angular.module('BeatBucket')
         .controller('BeatBucketController', BeatBucketController);
@@ -8,7 +9,7 @@
     BeatBucketController.$inject = ['$rootScope', '$scope', 'uuid', 'playlistService', 'timerService'];
     function BeatBucketController($rootScope, $scope, uuid, playlistService, timerService) {
         var vm = this;
-        var player_window = electron.remote.getCurrentWindow();
+        var player_window = getCurrentWindow();
         var timer = timerService;
 
         // arrow seek interval in seconds
@@ -16,6 +17,7 @@
         
         vm.playlistService = playlistService;
 
+        vm.defaultPlaylistName = vm.playlistService.getDefaultPlaylistName();
         vm.currentPlaylistName = vm.playlistService.getDefaultPlaylistName();
         vm.currentPlaylist = vm.playlistService.getPlaylist(vm.currentPlaylistName);   
         vm.viewPlaylistSongs = vm.currentPlaylist;     
@@ -35,28 +37,30 @@
         vm.newPlaylist = false;
         vm.renamingPlaylistName = null;
         vm.isRenamingPlaylist = false;
+        vm.isCopyingPlaylist = false;
         vm.currentTheme = 'theme-dark';
 
         vm.openDialog = function() {
-            var filePaths = electron.remote.dialog.showOpenDialog(null, 
-                {
-                    properties: ['openFile', 'multiSelections'],
-                    filters: [
-                        { name: 'MP3', extensions: ['mp3'] }
-                    ]
-                });
+            dialog.showOpenDialog(null, 
+            {
+                properties: ['openFile', 'multiSelections'],
+                filters: [
+                    { name: 'MP3', extensions: ['mp3'] }
+                ]
+            })
+            .then(function(result) {
+                if (result.canceled || result.filePaths.length == 0)
+                    return;
             
-            if (!filePaths)
-                return;
-            
-            var listCount = vm.currentPlaylist.length;
-            loadSongs(filePaths);
+                var listCount = vm.currentPlaylist.length;
+                loadSongs(result.filePaths, true);
 
-            if(!vm.currentSong)
-                play();                    
-            
-            if (vm.shuffleMode && vm.viewPlaylistName == vm.currentPlaylistName)
-                shuffleSongs(listCount);
+                if(vm.currentSong == null)
+                    play();                    
+                
+                if (vm.shuffleMode && vm.viewPlaylistName == vm.currentPlaylistName)
+                    shuffleSongs(listCount);
+            });                        
         }
 
         vm.toggleShuffle = function () {
@@ -182,6 +186,8 @@
         vm.removeSong = function() {            
             if (vm.contextMenuTarget == null) return;
             
+            dialog.showMessageBox
+
             var indexToUpdate = vm.contextMenuTarget;
 
             if (vm.viewPlaylistName != vm.currentPlaylistName && vm.contextMenuTarget < vm.viewPlaylistSongs.length) {
@@ -241,17 +247,13 @@
         vm.showNewPlaylist = function() {
             vm.newPlaylist = true;
 
-            if(!$scope.$$phase) {
-                $scope.$apply();
-            }
+            applyScope();
         }
 
         vm.hideNewPlaylist = function() {
             vm.newPlaylist = false;
 
-            if(!$scope.$$phase) {
-                $scope.$apply();
-            }
+            applyScope();
         }
 
         vm.createNewPlaylist = function(playlist_name=null) {
@@ -271,9 +273,29 @@
         vm.hideRenamePlaylist = function() {
             vm.isRenamingPlaylist = false;
 
-            if(!$scope.$$phase) {
-                $scope.$apply();
-            }
+            applyScope();
+        }
+
+        vm.showCopyPlaylist = function() {
+            if (vm.contextMenuTarget == null) return;
+
+            vm.copyingPlaylist = vm.contextMenuTarget;
+            vm.isCopyingPlaylist = true;            
+        }
+
+        vm.copyPlaylist = function(playlist_name=null) {
+            if (playlist_name == null) return;
+            
+            vm.playlistService.copyPlaylist(vm.copyingPlaylist, playlist_name);
+            
+            vm.playlistService.savePlaylist(playlist_name);
+            vm.hideCopyPlaylist();
+        }
+
+        vm.hideCopyPlaylist = function() {
+            vm.isCopyingPlaylist = false;
+
+            applyScope();
         }
 
         vm.renamePlaylist = function (playlist_name=null) {
@@ -297,25 +319,28 @@
         vm.removePlaylist = function() {
             if (vm.contextMenuTarget == null) return;
 
-            if (vm.viewPlaylistName == vm.contextMenuTarget) {
-                vm.viewPlaylistName = vm.playlistService.getDefaultPlaylistName();
-                vm.viewPlaylistSongs = vm.playlistService.getPlaylist(vm.currentPlaylistName);
-            }
-
-            if (vm.currentPlaylistName == vm.contextMenuTarget) {
-                vm.currentPlaylistName = vm.playlistService.getDefaultPlaylistName();
-                vm.currentPlaylist = vm.playlistService.getPlaylist(vm.currentPlaylistName);
-            }
-
-            vm.playlistService.removePlaylist(vm.contextMenuTarget);
+            const options = {
+                type: 'question',
+                buttons: ['Yes', 'No'],
+                defaultId: 1,
+                title: 'Remove playlist',
+                message: 'Do you really want to remove this playlist?'
+            };
+            
+            dialog.showMessageBox(null, options).then((data) => {
+                if(data.response == 0)
+                    confirmRemovePlaylist();
+            });
         }
 
-        vm.setViewPlaylist = function (name) {
+        vm.setViewPlaylist = function(name, unload_previous=true) {
             var playlist = vm.playlistService.getPlaylist(name);
+            var previousPlaylist = vm.viewPlaylistName;
 
             if (playlist !== null) {                
                 vm.viewPlaylistSongs = playlist;
                 vm.viewPlaylistName = name;
+                // TODO: could be more elegant
                 document.getElementById('songlist').scrollTo(0, 0);
 
                 if (playlist.length == 0){
@@ -326,11 +351,17 @@
                     vm.currentPlaylist = vm.viewPlaylistSongs;
                     vm.currentPlaylistName = vm.viewPlaylistName;
                 }
-            }                
+
+                if (unload_previous && previousPlaylist != vm.defaultPlaylistName && previousPlaylist != vm.currentPlaylistName) {
+                    // Free some memory
+                    vm.playlistService.unloadPlaylist(previousPlaylist);
+                }
+            }
         }
 
-        vm.setCurrentPlaylist = function(name) {
-            var playlist = vm.playlistService.getPlaylist(name);
+        vm.setCurrentPlaylist = function(name) {            
+            vm.setViewPlaylist(name, false);
+            var playlist = vm.playlistService.getPlaylist(name);            
 
             if (playlist !== null) {
                 vm.playedSongs = new Set();
@@ -350,11 +381,42 @@
         }
 
         vm.toggleTheme = function() {
-            //needs some work
+            //TODO: needs improvement
             if (vm.currentTheme == "theme-dark")
                 vm.currentTheme = "theme-light";
             else
                 vm.currentTheme = "theme-dark";
+        }
+
+        vm.getDisplayPlayListSize = function() {
+            if (vm.viewPlaylistSongs.length == 0)
+                return "";
+            
+            return '(' + String(vm.viewPlaylistSongs.length) + ')';
+        }
+
+        vm.hideOnRename = function(playlist_name) {
+            return vm.isRenamingPlaylist && vm.renamingPlaylistName == playlist_name;
+        }
+
+        vm.getPlaylistContextMenu = function(playlist_name) {
+            if(playlist_name != vm.defaultPlaylistName)
+                return "playlistContext";
+            
+            return "defaultPlaylistContext";
+        }
+
+        function confirmRemovePlaylist() {
+            if (vm.viewPlaylistName == vm.contextMenuTarget) {
+                vm.setViewPlaylist(vm.playlistService.getDefaultPlaylistName());
+            }
+
+            if (vm.currentPlaylistName == vm.contextMenuTarget) {
+                vm.setCurrentPlaylist(vm.playlistService.getDefaultPlaylistName());                
+            }
+
+            vm.playlistService.removePlaylist(vm.contextMenuTarget);
+            applyScope();
         }
 
         function shuffleSongs (startPosition, keepPlayedLast=false) {
@@ -390,6 +452,7 @@
 
             while(newIndexes.length > 0) {
                 var random_position = Math.floor(Math.random() * newIndexes.length);
+
                 if (vm.currentSong != null && vm.currentPlaylist[newIndexes[random_position]].id == vm.currentSong.id)
                     currentSongPosition = vm.playOrder.length;
                 
@@ -412,6 +475,10 @@
         }
 
         function play() {
+            if (vm.currentPlaylist.length == 0){
+                return;
+            }
+
             if (!vm.currentSong && vm.currentSongIndex == -1) {
                 vm.currentSongIndex = 0;
             } else if (vm.currentSong) {                                
@@ -429,7 +496,7 @@
                 vm.playedSongs.add(targetIndex);
             }
 
-            vm.currentSong = setupSong(vm.currentPlaylist[targetIndex]);            
+            vm.currentSong = setupSong(vm.currentPlaylist[targetIndex]);
             vm.currentSong.song.play();
         }
 
@@ -453,7 +520,7 @@
             return song                  
         }
 
-        function loadSongs(filePaths) {                        
+        function loadSongs(filePaths, save_playlist=false) {                        
             for (var i in filePaths) {
                 var fpath = filePaths[i];
                 var isNewSong = true;
@@ -466,8 +533,9 @@
                     vm.playlistService.addSongToPlaylist(vm.viewPlaylistName, new Song(uuid.v4(), fpath))
                 }
             }
-                        
-            vm.playlistService.savePlaylist(vm.viewPlaylistName);
+            
+            if (save_playlist)
+                vm.playlistService.savePlaylist(vm.viewPlaylistName);
         }
 
         function loadPlaylist(playlist_name) {
@@ -497,15 +565,17 @@
             }
         }
 
-        function init() {
-            vm.playlistService.loadPlaylistNames();
-            loadPlaylist(vm.currentPlaylistName);            
-
-            loadSongsFromArgs(electron.remote.process.argv);
-
+        function applyScope() {
             if(!$scope.$$phase) {
                 $scope.$apply();
             }
+        }
+
+        function init() {
+            vm.playlistService.loadPlaylistNames();
+            loadPlaylist(vm.currentPlaylistName);
+
+            applyScope();
         }
 
         $rootScope.$on('timerTick', function(event, data) {
@@ -524,10 +594,10 @@
               }
         });
 
-        electron.remote.app.on('second-instance', (event, commandLine, workingDirectory) => {
-            loadSongsFromArgs(commandLine);
-        })     
-
-        init();
+        ipcRenderer.on('new-song-added', (event, arg) => {
+            loadSongsFromArgs(arg);       
+        });
+        
+        init();        
     }
 })();

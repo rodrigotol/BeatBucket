@@ -44,20 +44,20 @@
                 context-menu="playlistsContext">
                 <div ng-repeat="name in vm.playlistService.getPlaylistNames()">
                     <div class="playlist"                                        
-                        ng-hide="vm.isRenamingPlaylist && vm.renamingPlaylistName == name"
+                        ng-hide="vm.hideOnRename(name)"
                         ng-click="vm.setViewPlaylist(name)"
                         ng-dblclick="vm.setCurrentPlaylist(name)" 
                         ng-class="{'viewPlaylist':vm.viewPlaylistName == name , 'currentPlaylist': vm.currentPlaylistName == name}"
                         layout="row" 
                         layout-align="start center" 
-                        context-menu="playlistContext"
+                        context-menu="{{vm.getPlaylistContextMenu(name)}}"
                         context-menu-bind="vm.contextMenuTarget"
                         context-menu-target="name">
-                        <md-icon ng-if="vm.currentPlaylistName != name || vm.showPlayButton" class="default-svg svg-button" md-svg-src="./assets/img/icons/playlist.svg" aria-label="{{name}}"></md-icon>
-                        <md-icon ng-if="vm.currentPlaylistName == name && !vm.showPlayButton" class="default-svg svg-button small-svg" md-svg-src="./assets/img/icons/play.svg" aria-label="{{name}}"></md-icon>                 
+                            <md-icon ng-if="vm.currentPlaylistName != name || vm.showPlayButton" class="default-svg svg-button" md-svg-src="./assets/img/icons/playlist.svg" aria-label="{{name}}"></md-icon>
+                            <md-icon ng-if="vm.currentPlaylistName == name && !vm.showPlayButton" class="default-svg svg-button small-svg" md-svg-src="./assets/img/icons/play.svg" aria-label="{{name}}"></md-icon>                 
                         {{name}}
                     </div>
-                    <div ng-if="vm.isRenamingPlaylist && vm.renamingPlaylistName == name">
+                    <div ng-if="vm.hideOnRename(name)">
                         <custom-input class="newPlaylist"
                                     placeholder="Playlist name"
                                     default-value="name"
@@ -71,13 +71,19 @@
                                 on-esc="vm.hideNewPlaylist"
                                 on-enter="vm.createNewPlaylist"></custom-input>
                 </div>
+                <div ng-if="vm.isCopyingPlaylist">
+                    <custom-input class="newPlaylist"
+                                placeholder="Playlist name"
+                                on-esc="vm.hideCopyPlaylist"
+                                on-enter="vm.copyPlaylist"></custom-input>
+                </div>
             </div>
             <div class="songlist-container" flex="75">
                 <div class="songPlaylist" layout="column" layout-align="center start" >
-                    {{vm.viewPlaylistName}}
+                    {{vm.viewPlaylistName}} {{vm.getDisplayPlayListSize()}}
                 </div>
                 <div id="songlist" class="songlist" flex="100">
-                    <div class="song" 
+                    <div class="song"
                         ng-repeat="song in vm.viewPlaylistSongs" 
                         ng-click="vm.skip($index)" 
                         layout="column" 
@@ -117,7 +123,7 @@
             <div class="label-container" layout="row" layout-align="end start" flex="15" flex-offset="15">
                 <div layout="row">                                
                     <div>{{vm.songPosition}}&nbsp;/&nbsp;{{vm.songDuration}}</div>
-                </div>            
+                </div>         
             </div>        
         </div>        
     </div>
@@ -130,7 +136,14 @@
         <ul class="menu-options">
             <li class="menu-option" ng-click="vm.showNewPlaylist()">New playlist</li>
             <li class="menu-option" ng-click="vm.showRenamePlaylist()">Rename playlist</li>
+            <li class="menu-option" ng-click="vm.showCopyPlaylist()">Copy playlist</li>
+            <li class="menu-separator"></li>
             <li class="menu-option" ng-click="vm.removePlaylist()">Delete playlist</li>
+        </ul>
+    </div>
+    <div class="menu" id="defaultPlaylistContext">
+        <ul class="menu-options">
+            <li class="menu-option" ng-click="vm.showCopyPlaylist()">Copy playlist</li>
         </ul>
     </div>
     <div class="menu" id="playlistsContext">

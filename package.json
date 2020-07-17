@@ -1,25 +1,36 @@
 {
   "name": "beatbucket",
   "version": "1.0.0",
-  "description": "Beat Bucket",
-  "main": "main.js",
+  "description": "BeatBucket",
+  "main": "main.js",  
   "scripts": {
     "start": "electron .",
     "pack": "electron-builder --dir",
-    "dist": "electron-builder"
+    "dist-win": "electron-builder --win",
+    "dist-linux": "electron-builder --linux"
   },
   "build": {
-    "productName": "Beat Bucket",
-    "icon": "assets/img/beat_bucket.png",
+    "productName": "BeatBucket",
+    "icon": "assets/img/beat_bucket.ico",    
     "fileAssociations": [
       {
         "ext": "mp3",
-        "name": "MP3 Files",
-        "role": "Editor"        
+        "name": "BeatMp3"
       }
-    ]
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/img/beat_bucket.ico"      
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true
+    }
   },
-  "author": "Rodrigo Silva",
+  "author": {
+    "name": "Rodrigo Silva"
+  },
   "license": "MIT",
   "devDependencies": {
     "angular": "^1.7.8",
@@ -29,11 +40,12 @@
     "angular-messages": "^1.7.8",
     "angular-route": "^1.7.8",
     "angular-uuid": "0.0.4",
-    "electron": "^5.0.13",
+    "electron": "^9.1.0",
     "electron-builder": "^22.7.0",
     "electron-is-dev": "^1.1.0",
     "howler": "^2.1.2",
-    "sass": "^1.22.7"
+    "sass": "^1.22.7",
+    "winreg": "^1.2.4"
   },
   "dependencies": {
     "angular": "^1.7.8",
@@ -44,6 +56,7 @@
     "angular-route": "^1.7.8",
     "angular-uuid": "0.0.4",
     "electron-is-dev": "^1.1.0",
-    "howler": "^2.1.2"
+    "howler": "^2.1.2",
+    "winreg": "^1.2.4"
   }
 }
